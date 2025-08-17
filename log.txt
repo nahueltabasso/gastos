@@ -1,0 +1,2 @@
+URL de conexión a la base de datos: mysql+pymysql://root:root@127.0.0.1:3307/gastos_casa_db
+Gasto con ID 98 eliminado.
