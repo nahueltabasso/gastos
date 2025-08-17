@@ -14,5 +14,4 @@ def get_db():
     try:
         yield db
     finally:
-        print("Entra al finally del generador get_db")
         db.close()
