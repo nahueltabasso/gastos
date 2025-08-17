@@ -104,3 +104,18 @@ def eliminar_gasto(gasto_id: int) -> None:
         session.commit()
         _actualizar_totales(session=session, gasto_db=gasto_db, operacion="restar")
         print("Gasto eliminado correctamente.")
+        
+def obtener_totales(tipo: str='') -> TotalDinero:
+    """
+    Obtiene los totales acumulados de gastos.
+
+    Args:
+        tipo (str): Tipo de total a obtener ('Gastos Casa' por defecto).
+
+    Returns:
+        TotalDinero: Objeto TotalDinero con los totales acumulados.
+    """
+    with closing(next(get_db())) as session:
+        if tipo:
+            return session.query(TotalDinero).filter(TotalDinero.tipo == tipo).first()
+        return None
