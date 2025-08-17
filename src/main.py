@@ -4,7 +4,7 @@ from crud import guardar_gasto, obtener_gastos, obtener_gasto_por_id, actualizar
 # Crear las tablas en la base de datos
 Base.metadata.create_all(bind=engine)
 
-crear = True
+crear = False
 listar = False
 listar_por_id = False
 actualizar = False
