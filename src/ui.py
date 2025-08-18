@@ -4,14 +4,22 @@ from crud import obtener_gastos, obtener_totales
 
 def mostrar_gastos():
     root = tk.Tk()
-    root.title('Lista de Gastos')
+    root.title('Aplicacion para control de gastos de Obra de Remodelacion')
     root.geometry('1800x800')
 
+    # Notebook para pestañas
+    notebook = ttk.Notebook(root)
+    notebook.pack(fill=tk.BOTH, expand=True)
+
+    # Pestaña 1: Lista de Gastos
+    tab1 = tk.Frame(notebook)
+    notebook.add(tab1, text='Lista de Gastos')
+
     # Título principal
-    tk.Label(root, text='Lista de Gastos', font=("Arial", 22, "bold")).pack(pady=10)
+    tk.Label(tab1, text='Lista de Gastos', font=("Arial", 22, "bold")).pack(pady=10)
 
     # Frame principal
-    main_frame = tk.Frame(root)
+    main_frame = tk.Frame(tab1)
     main_frame.pack(fill=tk.BOTH, expand=True)
 
     # Frame para la tabla (izquierda)
@@ -81,6 +89,11 @@ def mostrar_gastos():
         tk.Label(totales_frame, text=f"Total USD MEP: {total_dolar_mep_acum}", font=("Arial", 14)).pack(anchor='w', pady=5)
     else:
         tk.Label(totales_frame, text="No hay totales disponibles", font=("Arial", 14)).pack()
+
+    # Pestaña 2: Solo título
+    tab2 = tk.Frame(notebook)
+    notebook.add(tab2, text='Deuda Casa')
+    tk.Label(tab2, text='PESTAÑA 2', font=("Arial", 22, "bold")).pack(pady=20)
 
     root.mainloop()
 
