@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from crud import obtener_gastos, obtener_totales
+from crud import obtener_gastos, obtener_totales, guardar_gasto
 
 def mostrar_ui():
     root = tk.Tk()
@@ -90,6 +90,51 @@ def mostrar_ui():
     else:
         tk.Label(totales_frame, text="No hay totales disponibles", font=("Arial", 14)).pack()
 
+    def actualizar_tabla_y_totales():
+        # Limpiar tabla
+        for item in tree.get_children():
+            tree.delete(item)
+        gastos = obtener_gastos()
+        for i, gasto in enumerate(gastos):
+            total_pesos_str = f"$ {gasto.total_pesos:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            total_dolar_oficial_str = f"$ {gasto.total_dolar_oficial:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            total_dolar_mep_str = f"$ {gasto.total_dolar_mep:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            tag = 'evenrow' if i % 2 == 0 else 'oddrow'
+            tree.insert('', tk.END, values=(
+                gasto.id,
+                gasto.descripcion,
+                gasto.fecha,
+                total_pesos_str,
+                total_dolar_oficial_str,
+                total_dolar_mep_str,
+                gasto.titular
+            ), tags=(tag,))
+        # Actualizar totales
+        for widget in totales_frame.winfo_children():
+            widget.destroy()
+        totales = obtener_totales("Gastos Casa")
+        if totales:
+            total_pesos_acum = f"$ {totales.total_pesos_acum:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            total_dolar_oficial_acum = f"$ {totales.total_dolar_oficial_acum:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            total_dolar_mep_acum = f"$ {totales.total_dolar_mep_acum:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            tk.Label(totales_frame, text="Totales Acumulados", font=("Arial", 22, "bold")).pack(pady=10)
+            tk.Label(totales_frame, text=f"Total Pesos: {total_pesos_acum}", font=("Arial", 14)).pack(anchor='w', pady=5)
+            tk.Label(totales_frame, text=f"Total USD Oficial: {total_dolar_oficial_acum}", font=("Arial", 14)).pack(anchor='w', pady=5)
+            tk.Label(totales_frame, text=f"Total USD MEP: {total_dolar_mep_acum}", font=("Arial", 14)).pack(anchor='w', pady=5)
+        else:
+            tk.Label(totales_frame, text="No hay totales disponibles", font=("Arial", 14)).pack()
+        # Volver a poner el botón debajo de los totales
+        boton_nuevo = tk.Button(totales_frame,
+                                text='Agregar Gasto', 
+                                font=("Arial", 12, "bold"),
+                                bg='#ffe066',
+                                command=abrir_formulario_gasto,
+                                relief='groove',
+                                borderwidth=3,
+                                highlightthickness=2,
+                                highlightbackground='#ffe066')
+        boton_nuevo.pack(pady=30, side=tk.BOTTOM)
+
     def abrir_formulario_gasto():
         popup = tk.Toplevel(root)
         popup.title('Nuevo Gasto')
@@ -108,10 +153,8 @@ def mostrar_ui():
         tk.Label(popup, text='Titular:').pack(anchor='w', padx=20)
         titular_entry = tk.Entry(popup, width=40)
         titular_entry.pack(padx=20, pady=5)
-        # Mensaje de error
         mensaje = tk.Label(popup, text='', fg='red')
         mensaje.pack(pady=5)
-        
         def guardar():
             descripcion = descripcion_entry.get().strip()
             fecha = fecha_entry.get().strip()
@@ -125,7 +168,6 @@ def mostrar_ui():
             except ValueError:
                 mensaje.config(text='Total Pesos debe ser un número')
                 return
-            from crud import guardar_gasto
             gasto = {
                 'descripcion': descripcion,
                 'fecha': fecha,
@@ -134,7 +176,7 @@ def mostrar_ui():
             }
             guardar_gasto(gasto)
             mensaje.config(text='Gasto guardado correctamente', fg='green')
-            popup.after(1200, popup.destroy)
+            popup.after(1200, lambda: (popup.destroy(), actualizar_tabla_y_totales()))
         tk.Button(popup, text='Guardar', command=guardar, font=("Arial", 12, "bold"), bg='#ffe066',
                   relief='groove', borderwidth=3, highlightthickness=2, highlightbackground='#ffe066').pack(pady=10)
 
