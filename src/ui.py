@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from crud import obtener_gastos, obtener_totales, guardar_gasto
+from crud import obtener_gastos, obtener_totales, guardar_gasto, eliminar_gasto
 
 def mostrar_ui():
     root = tk.Tk()
@@ -89,6 +89,29 @@ def mostrar_ui():
         tk.Label(totales_frame, text=f"Total USD MEP: {total_dolar_mep_acum}", font=("Arial", 14)).pack(anchor='w', pady=5)
     else:
         tk.Label(totales_frame, text="No hay totales disponibles", font=("Arial", 14)).pack()
+
+    def eliminar_gasto_y_actualizar(gasto_id):
+        print(f"Eliminando gasto con ID {gasto_id}...")
+        # eliminar_gasto(gasto_id)
+        actualizar_tabla_y_totales()
+
+    def on_tree_select(event):
+        selected = tree.selection()
+        if selected:
+            item = tree.item(selected[0])
+            gasto_id = item['values'][0]
+            # Crear popup de confirmación
+            confirm = tk.Toplevel(root)
+            confirm.title('Eliminar Gasto')
+            confirm.geometry('300x150')
+            tk.Label(confirm, text='¿Eliminar este gasto?', font=("Arial", 14, "bold")).pack(pady=20)
+            def confirmar():
+                eliminar_gasto_y_actualizar(gasto_id)
+                confirm.destroy()
+            tk.Button(confirm, text='Eliminar', command=confirmar, font=("Arial", 12, "bold"), bg='#ffe066', fg='black', relief='groove', borderwidth=3, highlightthickness=2, highlightbackground='#ffe066').pack(pady=10)
+            tk.Button(confirm, text='Cancelar', command=confirm.destroy, font=("Arial", 12, "bold"), bg='#ffe066', fg='black', relief='groove', borderwidth=3, highlightthickness=2, highlightbackground='#ffe066').pack()
+
+    tree.bind('<Double-1>', on_tree_select)
 
     def actualizar_tabla_y_totales():
         # Limpiar tabla
@@ -194,8 +217,8 @@ def mostrar_ui():
 
     # Pestaña 2: Solo título
     tab2 = tk.Frame(notebook)
-    notebook.add(tab2, text='Deuda Casa')
-    tk.Label(tab2, text='PESTAÑA 2', font=("Arial", 22, "bold")).pack(pady=20)
+    notebook.add(tab2, text='Pago Casa')
+    tk.Label(tab2, text='Pago Casa', font=("Arial", 22, "bold")).pack(pady=20)
 
     root.mainloop()
 
