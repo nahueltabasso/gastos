@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from crud import obtener_gastos, obtener_totales
 
-def mostrar_gastos():
+def mostrar_ui():
     root = tk.Tk()
     root.title('Aplicacion para control de gastos de Obra de Remodelacion')
     root.geometry('1800x800')
@@ -90,6 +90,66 @@ def mostrar_gastos():
     else:
         tk.Label(totales_frame, text="No hay totales disponibles", font=("Arial", 14)).pack()
 
+    def abrir_formulario_gasto():
+        popup = tk.Toplevel(root)
+        popup.title('Nuevo Gasto')
+        popup.geometry('450x400')
+        tk.Label(popup, text='Agregar Nuevo Gasto', font=("Arial", 16, "bold")).pack(pady=10)
+        # Campos
+        tk.Label(popup, text='Descripción:').pack(anchor='w', padx=20)
+        descripcion_entry = tk.Entry(popup, width=40)
+        descripcion_entry.pack(padx=20, pady=5)
+        tk.Label(popup, text='Fecha (YYYY-MM-DD):').pack(anchor='w', padx=20)
+        fecha_entry = tk.Entry(popup, width=20)
+        fecha_entry.pack(padx=20, pady=5)
+        tk.Label(popup, text='Total Pesos:').pack(anchor='w', padx=20)
+        total_pesos_entry = tk.Entry(popup, width=20)
+        total_pesos_entry.pack(padx=20, pady=5)
+        tk.Label(popup, text='Titular:').pack(anchor='w', padx=20)
+        titular_entry = tk.Entry(popup, width=40)
+        titular_entry.pack(padx=20, pady=5)
+        # Mensaje de error
+        mensaje = tk.Label(popup, text='', fg='red')
+        mensaje.pack(pady=5)
+        
+        def guardar():
+            descripcion = descripcion_entry.get().strip()
+            fecha = fecha_entry.get().strip()
+            total_pesos = total_pesos_entry.get().strip()
+            titular = titular_entry.get().strip()
+            if not descripcion or not fecha or not total_pesos or not titular:
+                mensaje.config(text='Todos los campos son obligatorios')
+                return
+            try:
+                total_pesos = float(total_pesos.replace(',', '.'))
+            except ValueError:
+                mensaje.config(text='Total Pesos debe ser un número')
+                return
+            from crud import guardar_gasto
+            gasto = {
+                'descripcion': descripcion,
+                'fecha': fecha,
+                'total_pesos': total_pesos,
+                'titular': titular
+            }
+            guardar_gasto(gasto)
+            mensaje.config(text='Gasto guardado correctamente', fg='green')
+            popup.after(1200, popup.destroy)
+        tk.Button(popup, text='Guardar', command=guardar, font=("Arial", 12, "bold"), bg='#ffe066',
+                  relief='groove', borderwidth=3, highlightthickness=2, highlightbackground='#ffe066').pack(pady=10)
+
+    # Botón para agregar gasto debajo de los totales
+    boton_nuevo = tk.Button(totales_frame,
+                            text='Agregar Gasto', 
+                            font=("Arial", 12, "bold"),
+                            bg='#ffe066',
+                            command=abrir_formulario_gasto,
+                            relief='groove',
+                            borderwidth=3,
+                            highlightthickness=2,
+                            highlightbackground='#ffe066')
+    boton_nuevo.pack(pady=30, side=tk.BOTTOM)
+
     # Pestaña 2: Solo título
     tab2 = tk.Frame(notebook)
     notebook.add(tab2, text='Deuda Casa')
@@ -98,4 +158,4 @@ def mostrar_gastos():
     root.mainloop()
 
 if __name__ == '__main__':
-    mostrar_gastos()
+    mostrar_ui()
