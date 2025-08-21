@@ -59,6 +59,42 @@ class TotalDinero(Base):
     total_dolar_mep_acum: Mapped[float]
     tipo: Mapped[str] = mapped_column(String(20))  # 'oficial' o 'mep'
     
+
+class PagoCasa(Base):
+    __tablename__ = 'pagos_casa'
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    descripcion: Mapped[str] = mapped_column(String(150))
+    fecha: Mapped[str] = mapped_column(String(15))
+    total_usd: Mapped[float]
+    tipo: Mapped[str] = mapped_column(String(20))
+    
+    @staticmethod
+    def fecha_to_key(fecha: str) -> tuple:
+        meses = {
+            "Enero": 1, "Febrero": 2, "Marzo": 3, "Abril": 4,
+            "Mayo": 5, "Junio": 6, "Julio": 7, "Agosto": 8,
+            "Septiembre": 9, "Octubre": 10, "Noviembre": 11, "Diciembre": 12
+        }
+        try:
+            mes, anio = fecha.split('-')
+            return (int(anio), meses.get(mes, 0))
+        except Exception:
+            return (0, 0) 
+    
+    def set_valores(self, data: dict) -> None:
+        self.descripcion = data['descripcion']
+        self.fecha = data['fecha']
+        self.total_usd = data['total_usd']
+        self.tipo = data['tipo']
+        
+    def __repr__(self) -> str:
+        return f"""PagoCasa(id={self.id!r}, 
+                descripcion={self.descripcion!r}, 
+                fecha={self.fecha!r}, 
+                total_usd={self.total_usd!r}, 
+                tipo={self.tipo!r})"""
+    
                 
 @dataclass
 class TipoDolar:
@@ -81,3 +117,15 @@ class Dolar:
         self.blue.value_buy = data['blue']['value_buy']
         
         
+@dataclass
+class Totales():
+    total: float = 0.0
+    resta: float = 0.0
+    
+    def calcular_totales(self, pagos: list[PagoCasa]) -> None:
+        for pago in pagos:
+            if pago.tipo == 'sumar':
+                self.total += pago.total_usd
+            else:
+                self.resta += pago.total_usd
+        self.resta = self.total - self.resta
