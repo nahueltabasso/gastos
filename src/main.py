@@ -1,6 +1,6 @@
 from database import Base, engine
 from crud import guardar_gasto, obtener_gastos, obtener_gasto_por_id, actualizar_gasto, eliminar_gasto
-
+from crud import guardar_pago_casa, obtener_pagos, obtener_totales_pagos
 # Crear las tablas en la base de datos
 Base.metadata.create_all(bind=engine)
 
@@ -65,3 +65,12 @@ if eliminar:
     gasto_id = 98
     eliminar_gasto(gasto_id)
     print(f"Gasto con ID {gasto_id} eliminado.")
+    
+    
+pagos = obtener_pagos()
+print("Lista de Pagos Casa:")
+[print(pago) for pago in pagos]
+
+totales = obtener_totales_pagos(pagos)
+
+print(f"Total: {totales.total}, Resta: {totales.resta}")
