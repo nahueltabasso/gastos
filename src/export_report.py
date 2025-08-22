@@ -1,6 +1,12 @@
 from fpdf import FPDF 
 from crud import obtener_gastos, obtener_totales, obtener_pagos, obtener_totales_pagos
 from models import Gasto
+from config import settings
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email import encoders
+from email.mime.base import MIMEBase
+import smtplib, ssl
 import pandas as pd 
 
 class PDFService:
@@ -27,7 +33,7 @@ class PDFService:
         self.pdf.ln(10)
 
     def add_table(self):
-        """Adds the table from the DataFrame to the PDF."""
+        """Agrega una tabla a partir de un Dataframe a un PDF."""
         # Create the table
         cols = self.dataframe.columns.tolist()
         ncols = len(cols)
@@ -66,7 +72,7 @@ class PDFService:
             self.pdf.ln(line_height)
 
     def save_pdf(self, filename: str):
-        """Generates the PDF and saves it to a file."""
+        """Genera el archivo PDF y lo escribe en el sistema de archivos."""
         self.pdf.output(filename)
         
 def _add_title(pdf: PDFService, title: str) -> None:
@@ -75,8 +81,37 @@ def _add_title(pdf: PDFService, title: str) -> None:
 def _add_table(pdf: PDFService) -> None:
     pdf.add_table()
     
-def _send_email() -> None:
-    pass
+def _send_email(filename: str='') -> None:
+    sender_email = settings.GMAIL_SENDER_MAIL
+    receiver_email = settings.GMAIL_RECEIVER_MAIL
+    message = MIMEMultipart("alternative")
+    message["Subject"] = "multipart test"
+    message["From"] = sender_email
+    message["To"] = receiver_email
+    html = "<html><body><h1>Reporte</h1></body></html>"
+    
+    with open(filename, "rb") as attachment:
+        # Add file as application/octet-stream
+        # Email client can usually download this automatically as attachment
+        part = MIMEBase("application", "octet-stream")
+        part.set_payload(attachment.read())
+        
+    encoders.encode_base64(part)
+    part.add_header(
+        "Content-Disposition",
+        f"attachment; filename= {filename}",
+    )
+
+    part1 = MIMEText(html, "html")
+    message.attach(part1)
+    message.attach(part)
+
+    # Create a secure SSL context
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL(settings.GMAIL_MAIL_SERVER, settings.GMAIL_MAIL_PORT, context=context) as server:
+        server.login(settings.GMAIL_USERNAME, settings.GMAIL_PASSWORD)
+        server.sendmail(sender_email, receiver_email, message.as_string())
+
         
 def build_pdf_gastos_report(email_flag: bool=False) -> None:
     gastos, totales = obtener_gastos(), obtener_totales(tipo='Gastos Casa')
@@ -87,11 +122,14 @@ def build_pdf_gastos_report(email_flag: bool=False) -> None:
     _add_title(pdf, title="Totales de Gastos - Remodelacion Casa")
     pdf.dataframe = pd.DataFrame([totales.to_dict()])
     _add_table(pdf)
-    pdf.save_pdf("reporte_gastos.pdf")
+    filename = "reporte_gastos.pdf"
+    pdf.save_pdf(filename=filename)
     print("PDF generado exitosamente: gastos_remodelacion_casa.pdf")
     if email_flag:
-        _send_email()
-    
+        print("Enviando reporte por email...")
+        _send_email(filename=filename)
+        print("Email enviado exitosamente.")
+            
 def build_pdf_pagos_report(email_flag: bool=False) -> None:
     pagos = obtener_pagos()
     totales = obtener_totales_pagos(pagos=pagos)
@@ -102,12 +140,23 @@ def build_pdf_pagos_report(email_flag: bool=False) -> None:
     _add_title(pdf, title="Totales de Pagos - Casa")
     pdf.dataframe = pd.DataFrame([totales.to_dict()])
     _add_table(pdf)
-    pdf.save_pdf("reporte_pagos.pdf")
+    filename = "reporte_pagos.pdf"
+    pdf.save_pdf(filename=filename)
     print("PDF generado exitosamente: reporte_pagos.pdf")
-    
     if email_flag:
-        _send_email()
+        print("Enviando reporte por email...")
+        _send_email(filename=filename)
+        print("Email enviado exitosamente.")
     
 if __name__ == "__main__":
     #build_pdf_gastos_report(email_flag=False)
-    build_pdf_pagos_report(email_flag=False)
+    # build_pdf_pagos_report(email_flag=False)
+    print(settings.GMAIL_MAIL_SERVER)
+    # print(settings.GMAIL_MAIL_PORT)
+    # print(settings.GMAIL_USERNAME)
+    # print(settings.GMAIL_PASSWORD)
+    # print(settings.GMAIL_SENDER_MAIL)
+    # print(settings.GMAIL_RECEIVER_MAIL)
+    # print(settings.get_database_url())
+    
+    # _send_email(filename="reporte_pagos.pdf")

@@ -12,6 +12,13 @@ class Settings(BaseSettings):
     MYSQL_PASSWORD: str
     MYSQL_DATABASE: str
     
+    GMAIL_MAIL_PORT:int = 465
+    GMAIL_MAIL_SERVER: str = "smtp.gmail.com"
+    GMAIL_USERNAME: str
+    GMAIL_PASSWORD: str
+    GMAIL_SENDER_MAIL: str
+    GMAIL_RECEIVER_MAIL: str
+    
     def get_database_url(self) -> str:
         db_url = (
             f"mysql+pymysql://{self.MYSQL_USER}:{self.MYSQL_PASSWORD}@"
