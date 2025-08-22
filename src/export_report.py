@@ -8,6 +8,7 @@ from email import encoders
 from email.mime.base import MIMEBase
 import smtplib, ssl
 import pandas as pd 
+import os
 
 class PDFService:
     def __init__(self, data: list[Gasto]):
@@ -89,7 +90,7 @@ def _send_email(filename: str='') -> None:
     sender_email = settings.GMAIL_SENDER_MAIL
     receiver_email = settings.GMAIL_RECEIVER_MAIL
     message = MIMEMultipart("alternative")
-    message["Subject"] = "multipart test"
+    message["Subject"] = "Reportes de Gastos y Pagos"
     message["From"] = sender_email
     message["To"] = receiver_email
     html = "<html><body><h1>Reporte</h1></body></html>"
@@ -137,6 +138,7 @@ def build_pdf_gastos_report(email_flag: bool=False) -> None:
             print("Enviando reporte por email...")
             _send_email(filename=filename)
             print("Email enviado exitosamente.")
+            os.remove(filename)
     except Exception as e:
         print(f"Error al generar el reporte de gastos: {e}")
             
@@ -158,18 +160,7 @@ def build_pdf_pagos_report(email_flag: bool=False) -> None:
             print("Enviando reporte por email...")
             _send_email(filename=filename)
             print("Email enviado exitosamente.")
+            os.remove(filename)
     except Exception as e:
         print(f"Error al generar el reporte de pagos: {e}")
     
-if __name__ == "__main__":
-    #build_pdf_gastos_report(email_flag=False)
-    # build_pdf_pagos_report(email_flag=False)
-    print(settings.GMAIL_MAIL_SERVER)
-    # print(settings.GMAIL_MAIL_PORT)
-    # print(settings.GMAIL_USERNAME)
-    # print(settings.GMAIL_PASSWORD)
-    # print(settings.GMAIL_SENDER_MAIL)
-    # print(settings.GMAIL_RECEIVER_MAIL)
-    # print(settings.get_database_url())
-    
-    # _send_email(filename="reporte_pagos.pdf")
