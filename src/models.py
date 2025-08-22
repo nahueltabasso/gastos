@@ -38,6 +38,16 @@ class Gasto(Base):
         self.total_dolar_mep = round(self.total_pesos / dolar.blue.value_sell, 2)
         self.valor_dolar_oficial = dolar.oficial.value_sell
         self.valor_dolar_mep = dolar.blue.value_sell
+        
+    def to_dict(self) -> dict:
+        return {
+            'DESCRIPCION': getattr(self, 'descripcion', '') or '',
+            'FECHA': getattr(self, 'fecha', '') or '',
+            'PESOS': '$ ' + str(getattr(self, 'total_pesos', '0.0')) or '0.0',
+            'U$D OFICIAL': '$ ' +  str(getattr(self, 'total_dolar_oficial', '0.0')) or '0.0',
+            'U$D MEP': '$ ' + str(getattr(self, 'total_dolar_mep', '0.0')) or '0.0',
+            'TITULAR': getattr(self, 'titular', '') or ''
+        }
     
     def __repr__(self) -> str:
         return f"""Bill(id={self.id!r}, 
@@ -58,6 +68,13 @@ class TotalDinero(Base):
     total_dolar_oficial_acum: Mapped[float]
     total_dolar_mep_acum: Mapped[float]
     tipo: Mapped[str] = mapped_column(String(20))  # 'oficial' o 'mep'
+    
+    def to_dict(self) -> dict:
+        return {
+            'TOTAL $': '$ ' + str(getattr(self, 'total_pesos_acum', '0.0')) or '0.0',
+            'TOTAL U$D OF': '$ ' + str(getattr(self, 'total_dolar_oficial_acum', 0.0)) or '0.0',
+            'TOTAL U$D MEP': '$ ' +  str(getattr(self, 'total_dolar_mep_acum', 0.0)) or '0.0',
+        }
     
 
 class PagoCasa(Base):
@@ -87,6 +104,14 @@ class PagoCasa(Base):
         self.fecha = data['fecha']
         self.total_usd = data['total_usd']
         self.tipo = data['tipo']
+        
+    def to_dict(self) -> dict:
+        return {
+            'DESCRIPCION': getattr(self, 'descripcion', '') or '',
+            'FECHA': getattr(self, 'fecha', '') or '',
+            'TOTAL U$D': '$ ' + str(getattr(self, 'total_usd', '0.0')) or '0.0',
+            'TIPO': '+' if self.tipo == 'sumar' else '-'
+        }
         
     def __repr__(self) -> str:
         return f"""PagoCasa(id={self.id!r}, 
@@ -129,3 +154,9 @@ class Totales():
             else:
                 self.resta += pago.total_usd
         self.resta = self.total - self.resta
+        
+    def to_dict(self) -> dict:
+        return {
+            'TOTAL U$D': '$ ' + str(self.total) if self.total else '0.0',
+            'RESTA U$D': '$ ' + str(self.resta) if self.resta else '0.0'
+        }   
