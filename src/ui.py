@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 from crud import obtener_gastos, obtener_totales, guardar_gasto, eliminar_gasto
 import datetime
 
@@ -87,17 +88,6 @@ class App:
         self.totales_pago_casa_frame.pack(side=tk.RIGHT, fill=tk.Y)
         self.actualizar_tabla_pago_casa()
         self.actualizar_totales_pago_casa()
-        # Botón para agregar Pago Casa (abre popup con formulario)
-        boton_nuevo_pago = tk.Button(self.totales_pago_casa_frame,
-                                     text='Agregar Pago Casa',
-                                     font=("Arial", 12, "bold"),
-                                     bg='#ffe066',
-                                     command=self.abrir_formulario_pago_casa,
-                                     relief='groove',
-                                     borderwidth=3,
-                                     highlightthickness=2,
-                                     highlightbackground='#ffe066')
-        boton_nuevo_pago.pack(pady=30, side=tk.BOTTOM)
 
     def actualizar_tabla_y_totales(self):
         for item in self.tree.get_children():
@@ -130,6 +120,13 @@ class App:
             tk.Label(self.totales_frame, text=f"Total USD MEP: {total_dolar_mep_acum}", font=("Arial", 14)).pack(anchor='w', pady=5)
         else:
             tk.Label(self.totales_frame, text="No hay totales disponibles", font=("Arial", 14)).pack()
+
+        # Botones de exportación (Descargar / Enviar por email)
+        export_frame = tk.Frame(self.totales_frame)
+        export_frame.pack(pady=5, side=tk.BOTTOM)
+        tk.Button(export_frame, text='Exportar (Descargar)', command=lambda: self.export_gastos(False), font=("Arial", 10, "bold"), bg='#bde0fe', relief='groove', borderwidth=2).pack(side=tk.LEFT, padx=6)
+        tk.Button(export_frame, text='Exportar (Enviar por Email)', command=lambda: self.export_gastos(True), font=("Arial", 10, "bold"), bg='#bde0fe', relief='groove', borderwidth=2).pack(side=tk.LEFT, padx=6)
+
         boton_nuevo = tk.Button(self.totales_frame,
                                 text='Agregar Gasto', 
                                 font=("Arial", 12, "bold"),
@@ -231,6 +228,24 @@ class App:
         tk.Label(self.totales_pago_casa_frame, text=f"Total USD a Pagar Sumar: $ {totales.total:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), font=("Arial", 14)).pack(anchor='w', pady=5)
         tk.Label(self.totales_pago_casa_frame, text=f"Total USD Restante: $ {totales.resta:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), font=("Arial", 14)).pack(anchor='w', pady=5)
 
+        # Botones de exportación para Pago Casa
+        export_frame = tk.Frame(self.totales_pago_casa_frame)
+        export_frame.pack(pady=5, side=tk.BOTTOM)
+        tk.Button(export_frame, text='Exportar (Descargar)', command=lambda: self.export_pagos(False), font=("Arial", 10, "bold"), bg='#bde0fe', relief='groove', borderwidth=2).pack(side=tk.LEFT, padx=6)
+        tk.Button(export_frame, text='Exportar (Enviar por Email)', command=lambda: self.export_pagos(True), font=("Arial", 10, "bold"), bg='#bde0fe', relief='groove', borderwidth=2).pack(side=tk.LEFT, padx=6)
+
+        # Botón para agregar Pago Casa (abre popup con formulario)
+        boton_nuevo_pago = tk.Button(self.totales_pago_casa_frame,
+                                     text='Agregar Pago Casa',
+                                     font=("Arial", 12, "bold"),
+                                     bg='#ffe066',
+                                     command=self.abrir_formulario_pago_casa,
+                                     relief='groove',
+                                     borderwidth=3,
+                                     highlightthickness=2,
+                                     highlightbackground='#ffe066')
+        boton_nuevo_pago.pack(pady=30, side=tk.BOTTOM)
+
     def abrir_formulario_pago_casa(self):
         from crud import guardar_pago_casa
         popup = tk.Toplevel(self.root)
@@ -289,6 +304,30 @@ class App:
         anio = datetime.datetime.now().year
         meses = [f"{mes}-{anio}" for mes in meses]
         return meses
+
+    # Nuevas funciones helper para exportar
+    def export_gastos(self, email_flag: bool = False):
+        try:
+            from export_report import build_pdf_gastos_report
+            build_pdf_gastos_report(email_flag=email_flag)
+            if email_flag:
+                messagebox.showinfo('Exportar Gastos', 'Reporte enviado por email correctamente.')
+            else:
+                messagebox.showinfo('Exportar Gastos', 'Reporte PDF generado y guardado correctamente.')
+        except Exception as e:
+            messagebox.showerror('Error', f'Error al exportar gastos: {e}')
+
+    def export_pagos(self, email_flag: bool = False):
+        try:
+            from export_report import build_pdf_pagos_report
+            build_pdf_pagos_report(email_flag=email_flag)
+            if email_flag:
+                messagebox.showinfo('Exportar Pagos', 'Reporte enviado por email correctamente.')
+            else:
+                messagebox.showinfo('Exportar Pagos', 'Reporte PDF generado y guardado correctamente.')
+        except Exception as e:
+            messagebox.showerror('Error', f'Error al exportar pagos: {e}')
+    
 
 if __name__ == '__main__':
     App()
