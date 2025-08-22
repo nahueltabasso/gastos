@@ -4,3 +4,4 @@ requests==2.32.4
 python-dotenv==1.1.1
 pymysql==1.1.1
 pydantic-settings==2.10.1
+fpdf2==2.8.4

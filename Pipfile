@@ -10,6 +10,7 @@ requests = "*"
 python-dotenv = "*"
 pymysql = "*"
 pydantic-settings = "*"
+fpdf2 = "*"
 
 [dev-packages]
 
