@@ -73,7 +73,11 @@ class PDFService:
 
     def save_pdf(self, filename: str):
         """Genera el archivo PDF y lo escribe en el sistema de archivos."""
-        self.pdf.output(filename)
+        try:
+            self.pdf.output(filename)
+        except Exception as e:
+            print(f"Error al guardar el PDF: {e}")
+            raise
         
 def _add_title(pdf: PDFService, title: str) -> None:
     pdf.add_title(title=title)
@@ -108,45 +112,54 @@ def _send_email(filename: str='') -> None:
 
     # Create a secure SSL context
     context = ssl.create_default_context()
-    with smtplib.SMTP_SSL(settings.GMAIL_MAIL_SERVER, settings.GMAIL_MAIL_PORT, context=context) as server:
-        server.login(settings.GMAIL_USERNAME, settings.GMAIL_PASSWORD)
-        server.sendmail(sender_email, receiver_email, message.as_string())
-
+    try:
+        with smtplib.SMTP_SSL(settings.GMAIL_MAIL_SERVER, settings.GMAIL_MAIL_PORT, context=context) as server:
+            server.login(settings.GMAIL_USERNAME, settings.GMAIL_PASSWORD)
+            server.sendmail(sender_email, receiver_email, message.as_string())
+    except smtplib.SMTPException as e:
+        print(f"Error al enviar el email: {e}")
+        raise
         
 def build_pdf_gastos_report(email_flag: bool=False) -> None:
-    gastos, totales = obtener_gastos(), obtener_totales(tipo='Gastos Casa')
-    pdf = PDFService(data=gastos)
-    _add_title(pdf, title="Listado de Gastos - Remodelacion Casa")
-    pdf.set_data()
-    _add_table(pdf)
-    _add_title(pdf, title="Totales de Gastos - Remodelacion Casa")
-    pdf.dataframe = pd.DataFrame([totales.to_dict()])
-    _add_table(pdf)
-    filename = "reporte_gastos.pdf"
-    pdf.save_pdf(filename=filename)
-    print("PDF generado exitosamente: gastos_remodelacion_casa.pdf")
-    if email_flag:
-        print("Enviando reporte por email...")
-        _send_email(filename=filename)
-        print("Email enviado exitosamente.")
+    try:
+        gastos, totales = obtener_gastos(), obtener_totales(tipo='Gastos Casa')
+        pdf = PDFService(data=gastos)
+        _add_title(pdf, title="Listado de Gastos - Remodelacion Casa")
+        pdf.set_data()
+        _add_table(pdf)
+        _add_title(pdf, title="Totales de Gastos - Remodelacion Casa")
+        pdf.dataframe = pd.DataFrame([totales.to_dict()])
+        _add_table(pdf)
+        filename = "reporte_gastos.pdf"
+        pdf.save_pdf(filename=filename)
+        print("PDF generado exitosamente: gastos_remodelacion_casa.pdf")
+        if email_flag:
+            print("Enviando reporte por email...")
+            _send_email(filename=filename)
+            print("Email enviado exitosamente.")
+    except Exception as e:
+        print(f"Error al generar el reporte de gastos: {e}")
             
 def build_pdf_pagos_report(email_flag: bool=False) -> None:
-    pagos = obtener_pagos()
-    totales = obtener_totales_pagos(pagos=pagos)
-    pdf = PDFService(data=pagos)
-    _add_title(pdf, title="Listado de Pagos - Casa")
-    pdf.set_data()
-    _add_table(pdf)
-    _add_title(pdf, title="Totales de Pagos - Casa")
-    pdf.dataframe = pd.DataFrame([totales.to_dict()])
-    _add_table(pdf)
-    filename = "reporte_pagos.pdf"
-    pdf.save_pdf(filename=filename)
-    print("PDF generado exitosamente: reporte_pagos.pdf")
-    if email_flag:
-        print("Enviando reporte por email...")
-        _send_email(filename=filename)
-        print("Email enviado exitosamente.")
+    try:
+        pagos = obtener_pagos()
+        totales = obtener_totales_pagos(pagos=pagos)
+        pdf = PDFService(data=pagos)
+        _add_title(pdf, title="Listado de Pagos - Casa")
+        pdf.set_data()
+        _add_table(pdf)
+        _add_title(pdf, title="Totales de Pagos - Casa")
+        pdf.dataframe = pd.DataFrame([totales.to_dict()])
+        _add_table(pdf)
+        filename = "reporte_pagos.pdf"
+        pdf.save_pdf(filename=filename)
+        print("PDF generado exitosamente: reporte_pagos.pdf")
+        if email_flag:
+            print("Enviando reporte por email...")
+            _send_email(filename=filename)
+            print("Email enviado exitosamente.")
+    except Exception as e:
+        print(f"Error al generar el reporte de pagos: {e}")
     
 if __name__ == "__main__":
     #build_pdf_gastos_report(email_flag=False)
